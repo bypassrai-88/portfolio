@@ -58,23 +58,23 @@ const bypassrHighlights = [
 const intunedHighlights = [
   {
     icon: Layers,
-    text: "MVVM architecture — clean separation of Views, ViewModels, and data Models throughout the entire codebase",
+    text: "MVVM architecture with clean separation between Views, ViewModels, and data Models across the whole codebase",
   },
   {
     icon: Smartphone,
-    text: "Full iOS social media app — nearly 100 distinct features built in Swift",
+    text: "Close to 100 distinct features built natively in Swift for iOS",
   },
   {
     icon: Brain,
-    text: "ML processors that categorize content and drive user interaction algorithms",
+    text: "ML processors that categorize content and shape what users see in their feed",
   },
   {
     icon: ShieldCheck,
-    text: "Robust user authentication — login, session management, and security flows",
+    text: "Full auth flow covering login, session management, and account security",
   },
   {
     icon: Database,
-    text: "Backend handles DMs, comments, real-time updates, media storage (image/audio/video)",
+    text: "Backend supports DMs, comments, real-time updates, and media storage for image, audio, and video",
   },
 ];
 
@@ -241,12 +241,11 @@ export default function Projects() {
               </div>
 
               <p className="text-white/60 leading-relaxed mb-6 max-w-3xl text-[0.95rem]">
-                Led full-scale iOS social media app development with nearly 100 distinct
-                features, architected using <span className="text-cyan-400 font-semibold">MVVM</span> for
-                clean separation of views, view models, and data models. Built AI-driven ML
-                processors that categorize content and drive interaction. Implemented robust
-                auth, real-time updates, private messaging, comment sections, and scalable
-                media storage for image, audio, and video.
+                Built a full iOS social media app in Swift with close to 100 features, structured
+                around <span className="text-cyan-400 font-semibold">MVVM</span> to keep the codebase
+                clean and maintainable. Wrote ML processors that categorize content and influence
+                what users see. Handled auth, real-time updates, direct messaging, comment sections,
+                and media storage for images, audio, and video.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-3 mb-8">

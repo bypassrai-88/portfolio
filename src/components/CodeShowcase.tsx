@@ -93,22 +93,7 @@ export default function CodeShowcase() {
           {/* Tab bar */}
           <div className="border-b border-white/[0.07] bg-black/20 overflow-x-auto">
             <div className="flex items-stretch min-w-max">
-              <span className="flex-shrink-0 px-4 py-2.5 text-[9px] font-black tracking-widest uppercase text-cyan-500/70 border-r border-white/[0.06] flex items-center">
-                In-Tuned
-              </span>
-              {files.filter(f => f.project === "In-Tuned").map(f => {
-                const i = files.indexOf(f);
-                return (
-                  <button key={f.name} onClick={() => setActive(i)}
-                    className={`flex-shrink-0 px-4 py-3 text-[11px] font-semibold tracking-wide transition-all border-b-2 ${
-                      active === i ? "border-cyan-400 text-cyan-300 bg-white/[0.04]" : "border-transparent text-white/35 hover:text-white/60"
-                    }`}>
-                    {f.name}
-                  </button>
-                );
-              })}
-              <div className="w-px bg-white/[0.08] mx-1 self-stretch" />
-              <span className="flex-shrink-0 px-4 py-2.5 text-[9px] font-black tracking-widest uppercase text-indigo-400/70 flex items-center">
+              <span className="flex-shrink-0 px-4 py-2.5 text-[9px] font-black tracking-widest uppercase text-indigo-400/70 border-r border-white/[0.06] flex items-center">
                 Bypassr AI
               </span>
               {files.filter(f => f.project === "Bypassr AI").map(f => {
@@ -117,6 +102,21 @@ export default function CodeShowcase() {
                   <button key={f.name} onClick={() => setActive(i)}
                     className={`flex-shrink-0 px-4 py-3 text-[11px] font-semibold tracking-wide transition-all border-b-2 ${
                       active === i ? "border-indigo-400 text-indigo-300 bg-white/[0.04]" : "border-transparent text-white/35 hover:text-white/60"
+                    }`}>
+                    {f.name}
+                  </button>
+                );
+              })}
+              <div className="w-px bg-white/[0.08] mx-1 self-stretch" />
+              <span className="flex-shrink-0 px-4 py-2.5 text-[9px] font-black tracking-widest uppercase text-cyan-500/70 flex items-center">
+                In-Tuned
+              </span>
+              {files.filter(f => f.project === "In-Tuned").map(f => {
+                const i = files.indexOf(f);
+                return (
+                  <button key={f.name} onClick={() => setActive(i)}
+                    className={`flex-shrink-0 px-4 py-3 text-[11px] font-semibold tracking-wide transition-all border-b-2 ${
+                      active === i ? "border-cyan-400 text-cyan-300 bg-white/[0.04]" : "border-transparent text-white/35 hover:text-white/60"
                     }`}>
                     {f.name}
                   </button>

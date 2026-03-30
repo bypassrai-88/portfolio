@@ -70,18 +70,19 @@ export default function Skills() {
           Technology Stack
         </motion.h2>
 
-        <div className="space-y-10">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {skillGroups.map((group, gi) => (
             <motion.div
               key={group.category}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.55, delay: 0.15 + gi * 0.08 }}
+              transition={{ duration: 0.5, delay: 0.12 + gi * 0.07 }}
+              className="card p-5"
             >
-              <p className="text-xs font-bold tracking-widest uppercase text-white/35 mb-3">
+              <p className="text-[10px] font-bold tracking-widest uppercase text-white/35 mb-3">
                 {group.category}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {group.skills.map((skill) => (
                   <span key={skill} className="skill-badge">
                     {skill}

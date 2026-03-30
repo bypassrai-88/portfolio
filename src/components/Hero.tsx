@@ -59,10 +59,10 @@ export default function Hero() {
           {...fadeUp(0.32)}
           className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto leading-relaxed mb-10"
         >
-          Crafting fast, modern{" "}
-          <span className="text-cyan-400 font-semibold">web experiences</span> and{" "}
-          <span className="text-indigo-400 font-semibold">full-stack applications</span>{" "}
-          — powered by AI, secured by design.
+          I build{" "}
+          <span className="text-cyan-400 font-semibold">web apps</span> and{" "}
+          <span className="text-indigo-400 font-semibold">full-stack products</span>{" "}
+          that work well and are easy to maintain. Also into AI, iOS, and keeping things secure.
         </motion.p>
 
         {/* CTA buttons */}

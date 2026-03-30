@@ -7,11 +7,15 @@ import { useRef } from "react";
 const skillGroups = [
   {
     category: "Languages",
-    skills: ["Java", "Python", "TypeScript", "C++", "C#", "Swift", "Ruby", "SQL"],
+    skills: ["Java", "Python", "TypeScript", "PHP", "C++", "C#", "Swift", "Ruby", "SQL"],
   },
   {
-    category: "Frameworks & Libraries",
-    skills: ["Next.js", "React", "Node.js", "Tailwind CSS"],
+    category: "Web Development",
+    skills: ["Next.js", "React", "Node.js", "REST APIs", "Tailwind CSS", "HTML", "CSS", "Responsive Design", "PHP"],
+  },
+  {
+    category: "UI & Design",
+    skills: ["Component Design", "Mobile-First", "Animations", "Accessibility", "UI/UX"],
   },
   {
     category: "AI & Data",
@@ -22,12 +26,12 @@ const skillGroups = [
     skills: ["AWS", "Docker", "GitLab CI/CD", "DevOps Practices", "Server Management"],
   },
   {
-    category: "Databases & Security",
-    skills: ["MySQL", "SQL Databases", "Cybersecurity", "Windows Server", "Virtualization"],
+    category: "Architecture & Patterns",
+    skills: ["MVVM", "MVC", "REST APIs", "Component Architecture", "Modular Design"],
   },
   {
-    category: "Frontend",
-    skills: ["HTML", "CSS", "Responsive Design", "UI/UX"],
+    category: "Databases & Security",
+    skills: ["MySQL", "SQL Databases", "Cybersecurity", "Windows Server", "Virtualization"],
   },
 ];
 

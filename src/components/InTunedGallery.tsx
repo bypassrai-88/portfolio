@@ -10,11 +10,11 @@ const SLOT_COUNT = 6;
 
 const placeholderLabels = [
   "Home Feed",
-  "Profile View",
-  "Messaging",
-  "Content Upload",
+  "Profile",
   "Discover",
-  "Notifications",
+  "RSS Upload",
+  "Sign In",
+  "Sign Up",
 ];
 
 export default function InTunedGallery() {

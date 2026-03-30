@@ -46,24 +46,24 @@ const bypassrHighlights = [
 
 const intunedHighlights = [
   {
+    icon: Layers,
+    text: "MVVM architecture — clean separation of Views, ViewModels, and data Models throughout the entire codebase",
+  },
+  {
     icon: Smartphone,
-    text: "Full iOS social media app — nearly 100 distinct features",
+    text: "Full iOS social media app — nearly 100 distinct features built in Swift",
   },
   {
     icon: Brain,
-    text: "ML processors that categorize content and drive user interaction",
+    text: "ML processors that categorize content and drive user interaction algorithms",
   },
   {
     icon: ShieldCheck,
-    text: "Smooth user authentication — login, session management, security",
+    text: "Robust user authentication — login, session management, and security flows",
   },
   {
     icon: Database,
-    text: "Backend handles DMs, comments, real-time updates, and all content",
-  },
-  {
-    icon: Layers,
-    text: "Efficient media storage for image, audio, and video assets at scale",
+    text: "Backend handles DMs, comments, real-time updates, media storage (image/audio/video)",
   },
 ];
 
@@ -235,6 +235,7 @@ export default function Projects() {
                 {[
                   "Swift",
                   "iOS",
+                  "MVVM",
                   "Machine Learning",
                   "Backend",
                   "Real-time",
@@ -245,11 +246,12 @@ export default function Projects() {
               </div>
 
               <p className="text-white/60 leading-relaxed mb-8 max-w-3xl text-[0.95rem]">
-                Led full-scale iOS social media app backend development with nearly 100
-                distinct features. Built AI-driven ML processors that categorize content
-                and increase user interaction. Implemented robust auth, real-time content
-                updates, private messaging, comment sections, and efficient media storage
-                for image, audio, and video at scale.
+                Led full-scale iOS social media app development with nearly 100 distinct
+                features, architected using <span className="text-cyan-400 font-semibold">MVVM</span> for
+                clean separation of views, view models, and data models. Built AI-driven ML
+                processors that categorize content and drive interaction. Implemented robust
+                auth, real-time updates, private messaging, comment sections, and scalable
+                media storage for image, audio, and video.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-3">

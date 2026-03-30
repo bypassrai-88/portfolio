@@ -3,28 +3,32 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Brain, Shield, Code2, Server } from "lucide-react";
+import { Brain, Shield, Code2, Server, Globe, Layers } from "lucide-react";
 
 const traits = [
+  {
+    icon: Globe,
+    label: "Web Development",
+    desc: "Building modern, performant web apps with Next.js, React, Node.js, PHP, and REST APIs.",
+    color: "cyan",
+  },
+  {
+    icon: Layers,
+    label: "Full-Stack Engineering",
+    desc: "End-to-end product ownership — polished frontends, scalable backends, clean architecture.",
+    color: "indigo",
+  },
   {
     icon: Brain,
     label: "AI & Machine Learning",
     desc: "Building language models and ML-driven systems for real-world data problems.",
-  },
-  {
-    icon: Code2,
-    label: "Full-Stack Engineering",
-    desc: "End-to-end product development — from polished UIs to scalable backends.",
+    color: "indigo",
   },
   {
     icon: Shield,
     label: "Cybersecurity",
     desc: "Securing server infrastructure, scanning vulnerabilities, ensuring compliance.",
-  },
-  {
-    icon: Server,
-    label: "Server & DevOps",
-    desc: "Managing Windows Server, virtual environments, CI/CD, Docker, and AWS.",
+    color: "indigo",
   },
 ];
 
@@ -53,23 +57,22 @@ export default function About() {
             transition={{ duration: 0.7, delay: 0.1 }}
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">
-              Engineering software that{" "}
-              <span className="gradient-text">thinks</span> and{" "}
-              <span className="gradient-text">scales</span>.
+              Building web products that{" "}
+              <span className="gradient-text">look great</span> and{" "}
+              <span className="gradient-text">scale further</span>.
             </h2>
             <p className="text-white/60 leading-relaxed mb-5 text-[0.95rem]">
-              I&apos;m a Software Engineer with a Computer Science degree from California
-              Lutheran University — graduated Cum Laude, Dean&apos;s List every
-              semester, and Scholar Athlete. My background spans technical
-              support, server management, and cybersecurity, with a strong focus
-              on AI and automation.
+              I&apos;m a Software Engineer specializing in modern web development —
+              full-stack applications built with Next.js, React, Node.js, and PHP,
+              paired with clean UI design and fast, reliable backends. I graduated
+              Cum Laude in Computer Science from California Lutheran University,
+              Dean&apos;s List every semester.
             </p>
             <p className="text-white/60 leading-relaxed text-[0.95rem]">
-              I&apos;ve built Python-based language models that classify large
-              survey datasets, secured enterprise server environments, and
-              developed full-scale iOS and web applications. I write clean,
-              deliberate code and care about the product experience as much as
-              the underlying system.
+              Beyond the web, I bring depth in AI automation, iOS development, and
+              cybersecurity — having built production ML pipelines, a full-scale
+              iOS social app, and secured enterprise server environments. I care
+              as much about the product experience as the code underneath it.
             </p>
           </motion.div>
 
@@ -83,8 +86,8 @@ export default function About() {
                 transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
                 className="card p-5"
               >
-                <div className="w-9 h-9 rounded-lg bg-indigo-600/20 flex items-center justify-center mb-3">
-                  <t.icon size={18} className="text-indigo-400" />
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${t.color === "cyan" ? "bg-cyan-600/20" : "bg-indigo-600/20"}`}>
+                  <t.icon size={18} className={t.color === "cyan" ? "text-cyan-400" : "text-indigo-400"} />
                 </div>
                 <p className="text-white font-semibold text-sm mb-1">
                   {t.label}

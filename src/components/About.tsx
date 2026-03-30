@@ -69,7 +69,7 @@ export default function About() {
               applications. I work primarily with Next.js, React, and Node.js, and
               I care a lot about getting the details right on both sides of the stack.
               I graduated Cum Laude in Computer Science from California Lutheran
-              University, Dean&apos;s List every semester.
+              University.
             </p>
           </motion.div>
 

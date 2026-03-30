@@ -160,12 +160,11 @@ export default function Projects() {
 
               {/* Description */}
               <p className="text-white/60 leading-relaxed mb-8 max-w-3xl text-[0.95rem]">
-                A production full-stack AI writing suite — essay drafting, grammar, link-aware
-                summarization, translation, and paraphrasing. The same codebase serves two
-                distinct product narratives ({'"writing suite"'} vs{" "}
-                {'"humanizer"'}) entirely through a build-time environment variable, with no
-                forked repos. Demonstrates product engineering judgment: one maintainable
-                system, multiple markets.
+                A production full-stack AI writing suite covering essay drafting, grammar, link-aware
+                summarization, translation, and paraphrasing. The same codebase powers two
+                distinct product experiences ({'"writing suite"'} and{" "}
+                {'"humanizer"'}) switched entirely through a build-time environment variable. One codebase,
+                no forked repos, two different markets.
               </p>
 
               {/* Highlights */}

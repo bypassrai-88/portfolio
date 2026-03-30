@@ -74,12 +74,6 @@ export default function Hero() {
             View Projects
             <ExternalLink size={14} />
           </a>
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-xl border border-[rgba(99,102,241,0.35)] text-white/80 hover:text-white hover:border-indigo-500 font-semibold text-sm tracking-wide transition-all duration-200"
-          >
-            Get In Touch
-          </a>
         </motion.div>
 
         {/* Contact chips */}

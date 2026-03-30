@@ -39,7 +39,7 @@ export default function Hero() {
         {/* Name */}
         <motion.h1
           {...fadeUp(0.1)}
-          className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight text-white mb-4 leading-[1.0]"
+          className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight text-white mb-4 leading-[1.0] mt-20"
         >
           Connor
           <br />

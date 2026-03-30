@@ -61,13 +61,96 @@ struct UserService {
                 completion([], nil)
                 return
             }
+
             let resultUsers = documents.compactMap { try? $0.data(as: User.self) }
                 .filter { user in
                     let isDeleted = user.isDeleted ?? false
                     let isAnonymous = user.username.lowercased().hasPrefix("anon_")
                     return !isDeleted && !isAnonymous
                 }
-            completion(resultUsers, documents.last)
+
+            let sortedUsers = resultUsers.sorted { user1, user2 in
+                let user1ExactMatch = user1.username.lowercased() == query.lowercased()
+                let user2ExactMatch = user2.username.lowercased() == query.lowercased()
+                if user1ExactMatch != user2ExactMatch { return user1ExactMatch }
+
+                let user1StartsWith = user1.username.lowercased().hasPrefix(query.lowercased())
+                let user2StartsWith = user2.username.lowercased().hasPrefix(query.lowercased())
+                if user1StartsWith != user2StartsWith { return user1StartsWith }
+
+                if user1.followers != user2.followers {
+                    return user1.followers > user2.followers
+                }
+
+                if user1.isVerified != user2.isVerified { return user1.isVerified }
+
+                if let date1 = user1.createdAt, let date2 = user2.createdAt {
+                    return date1.dateValue() > date2.dateValue()
+                }
+                return false
+            }
+
+            let topResults = Array(sortedUsers.prefix(10))
+
+            guard let currentUid = Auth.auth().currentUser?.uid else {
+                completion(topResults, documents.last)
+                return
+            }
+
+            Firestore.firestore().collection("users").document(currentUid).getDocument { snapshot, _ in
+                if let userData = snapshot?.data(),
+                   let blockedUsers = userData["blockedUsers"] as? [String] {
+                    let filtered = resultUsers.filter { !blockedUsers.contains($0.uid) }
+                    let sortedFiltered = filtered.sorted { $0.followers > $1.followers }
+                    completion(Array(sortedFiltered.prefix(10)), documents.last)
+                } else {
+                    completion(topResults, documents.last)
+                }
+            }
+        }
+    }
+
+    func fetchUsers(limit: Int = 20, lastDocument: DocumentSnapshot? = nil,
+                    completion: @escaping(Result<([User], DocumentSnapshot?), Error>) -> Void) {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            let error = NSError(domain: "UserService", code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+            completion(.failure(error))
+            return
+        }
+
+        var query = Firestore.firestore().collection("users")
+            .order(by: "username")
+            .limit(to: limit)
+
+        if let lastDocument = lastDocument {
+            query = query.start(afterDocument: lastDocument)
+        }
+
+        query.getDocuments { snapshot, error in
+            if let error = error { completion(.failure(error)); return }
+
+            guard let documents = snapshot?.documents else {
+                completion(.failure(NSError(domain: "UserService", code: 500,
+                    userInfo: [NSLocalizedDescriptionKey: "No documents returned"])))
+                return
+            }
+
+            let users = documents.compactMap { doc -> User? in
+                guard let user = try? doc.data(as: User.self),
+                      user.id != currentUserId else { return nil }
+                return user
+            }
+
+            Firestore.firestore().collection("users").document(currentUserId).getDocument { snapshot, _ in
+                if let userData = snapshot?.data(),
+                   let blockedUsers = userData["blockedUsers"] as? [String] {
+                    let filtered = users.filter { !blockedUsers.contains($0.uid) }
+                    completion(.success((filtered, documents.last)))
+                } else {
+                    completion(.success((users, documents.last)))
+                }
+            }
         }
     }
 }`,

@@ -38,7 +38,7 @@ export default function Navbar() {
             href="#hero"
             className="text-sm font-bold tracking-widest text-white/90 hover:text-indigo-400 transition-colors uppercase"
           >
-            Connor<span className="text-indigo-400">.</span>
+            Connor
           </a>
 
           {/* Desktop links */}

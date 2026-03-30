@@ -563,8 +563,8 @@ export default function CodeShowcase() {
           </div>
 
           {/* Code block */}
-          <div className="overflow-x-auto">
-            <pre className="p-6 text-[12px] leading-[1.7] font-mono text-white/75 min-h-[400px]">
+          <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
+            <pre className="p-6 text-[12px] leading-[1.7] font-mono text-white/75">
               <code
                 dangerouslySetInnerHTML={{
                   __html: highlight(file.code, file.lang),

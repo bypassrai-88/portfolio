@@ -110,7 +110,7 @@ export default function Projects() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-3xl sm:text-4xl font-bold text-white mb-14"
         >
-          Featured Work
+          Recent Projects
         </motion.h2>
 
         <div className="space-y-10">

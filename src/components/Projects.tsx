@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import Image from "next/image";
 import {
   ExternalLink,
   Layers,
@@ -11,7 +12,17 @@ import {
   Smartphone,
   Globe,
   Database,
+  X,
 } from "lucide-react";
+
+const screenshots = [
+  { src: "/screenshots/intuned-1.png", label: "Home Feed" },
+  { src: "/screenshots/intuned-2.png", label: "Profile" },
+  { src: "/screenshots/intuned-3.png", label: "Discover" },
+  { src: "/screenshots/intuned-4.png", label: "RSS Upload" },
+  { src: "/screenshots/intuned-5.png", label: "Sign In" },
+  { src: "/screenshots/intuned-6.png", label: "Sign Up" },
+];
 
 function GithubIcon({ size = 16, className }: { size?: number; className?: string }) {
   return (
@@ -78,8 +89,10 @@ function ProjectTag({ label }: { label: string }) {
 export default function Projects() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   return (
+    <>
     <section id="projects" className="relative py-16 px-6">
       <div className="max-w-5xl mx-auto" ref={ref}>
         <motion.p
@@ -121,25 +134,13 @@ export default function Projects() {
 
             <div className="relative z-10">
               {/* Header */}
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-                <div>
-                  <p className="text-xs font-bold tracking-widest uppercase text-white/30 mb-1">
-                    01 — Web Application
-                  </p>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white">
-                    Bypassr AI
-                  </h3>
-                </div>
-                <div className="flex gap-3">
-                  <a
-                    href="https://bypassrai.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold tracking-wide transition-all hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]"
-                  >
-                    Live Site <ExternalLink size={12} />
-                  </a>
-                </div>
+              <div className="mb-6">
+                <p className="text-xs font-bold tracking-widest uppercase text-white/30 mb-1">
+                  01 — Web Application
+                </p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-white">
+                  Bypassr AI
+                </h3>
               </div>
 
               {/* Tags */}
@@ -168,7 +169,7 @@ export default function Projects() {
               </p>
 
               {/* Highlights */}
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid sm:grid-cols-2 gap-3 mb-8">
                 {bypassrHighlights.map((h) => (
                   <div
                     key={h.text}
@@ -181,6 +182,20 @@ export default function Projects() {
                   </div>
                 ))}
               </div>
+
+              {/* CTA */}
+              <a
+                href="https://bypassrai.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold text-sm tracking-wide text-white transition-all duration-300 hover:shadow-[0_0_40px_rgba(99,102,241,0.5)]"
+                style={{
+                  background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #22d3ee 100%)",
+                }}
+              >
+                Visit Bypassr AI
+                <ExternalLink size={15} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </a>
             </div>
           </motion.div>
 
@@ -202,32 +217,13 @@ export default function Projects() {
             />
 
             <div className="relative z-10">
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-                <div>
-                  <p className="text-xs font-bold tracking-widest uppercase text-white/30 mb-1">
-                    02 — iOS Application
-                  </p>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white">
-                    In-Tuned
-                  </h3>
-                </div>
-                <div className="flex gap-3">
-                  <a
-                    href="https://github.com/connor833/In-Tuned"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/15 hover:border-white/35 text-white/70 hover:text-white text-xs font-semibold tracking-wide transition-all"
-                  >
-                    <GithubIcon size={13} />
-                    GitHub
-                  </a>
-                  <a
-                    href="#intuned-gallery"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600/80 hover:bg-cyan-500/80 text-white text-xs font-semibold tracking-wide transition-all hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                  >
-                    Screenshots <ExternalLink size={12} />
-                  </a>
-                </div>
+              <div className="mb-6">
+                <p className="text-xs font-bold tracking-widest uppercase text-white/30 mb-1">
+                  02 — iOS Application
+                </p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-white">
+                  In-Tuned
+                </h3>
               </div>
 
               {/* Tags */}
@@ -245,7 +241,7 @@ export default function Projects() {
                 ))}
               </div>
 
-              <p className="text-white/60 leading-relaxed mb-8 max-w-3xl text-[0.95rem]">
+              <p className="text-white/60 leading-relaxed mb-6 max-w-3xl text-[0.95rem]">
                 Led full-scale iOS social media app development with nearly 100 distinct
                 features, architected using <span className="text-cyan-400 font-semibold">MVVM</span> for
                 clean separation of views, view models, and data models. Built AI-driven ML
@@ -254,7 +250,7 @@ export default function Projects() {
                 media storage for image, audio, and video.
               </p>
 
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid sm:grid-cols-2 gap-3 mb-8">
                 {intunedHighlights.map((h) => (
                   <div
                     key={h.text}
@@ -267,10 +263,68 @@ export default function Projects() {
                   </div>
                 ))}
               </div>
+
+              {/* Screenshots inside the card */}
+              <div className="border-t border-white/[0.06] pt-6">
+                <p className="text-[10px] font-bold tracking-widest uppercase text-white/30 mb-4">
+                  UI Screenshots
+                </p>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {screenshots.map((s) => (
+                    <button
+                      key={s.src}
+                      onClick={() => setLightbox(s.src)}
+                      className="group relative rounded-xl overflow-hidden border border-white/[0.08] hover:border-cyan-500/40 transition-all"
+                      style={{ aspectRatio: "9/19.5" }}
+                      aria-label={s.label}
+                    >
+                      <Image
+                        src={s.src}
+                        alt={s.label}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 640px) 33vw, 16vw"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-end p-1.5 opacity-0 group-hover:opacity-100">
+                        <p className="text-white text-[9px] font-semibold leading-tight">{s.label}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
       </div>
     </section>
+
+    {/* Lightbox */}
+    {lightbox && (
+      <div
+        className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6"
+        onClick={() => setLightbox(null)}
+      >
+        <button
+          className="absolute top-5 right-5 text-white/60 hover:text-white transition-colors"
+          onClick={() => setLightbox(null)}
+          aria-label="Close"
+        >
+          <X size={24} />
+        </button>
+        <div
+          className="relative max-h-[90vh] max-w-[360px] w-full rounded-2xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Image
+            src={lightbox}
+            alt="In-Tuned screenshot"
+            width={360}
+            height={780}
+            className="w-full h-auto object-contain"
+          />
+        </div>
+      </div>
+    )}
+  </>
   );
 }

@@ -60,22 +60,16 @@ export default function About() {
             transition={{ duration: 0.7, delay: 0.1 }}
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">
-              Software engineer with a{" "}
-              <span className="gradient-text">full-stack</span> background and{" "}
-              <span className="gradient-text">product mindset</span>.
+              Software engineer with a full-stack background and experience across{" "}
+              <span className="gradient-text">web, mobile,</span> and{" "}
+              <span className="gradient-text">AI development</span>.
             </h2>
             <p className="text-white/60 leading-relaxed mb-5 text-[0.95rem]">
               I&apos;m a Software Engineer focused on web development and full-stack
-              applications. I work primarily with Next.js, React, Node.js, and PHP, and
+              applications. I work primarily with Next.js, React, and Node.js, and
               I care a lot about getting the details right on both sides of the stack.
               I graduated Cum Laude in Computer Science from California Lutheran
               University, Dean&apos;s List every semester.
-            </p>
-            <p className="text-white/60 leading-relaxed text-[0.95rem]">
-              Outside of web work I&apos;ve built production ML pipelines, led the backend
-              of a full iOS social app called In-Tuned, and spent time securing real
-              enterprise server environments. I like working on things that actually
-              ship and get used.
             </p>
           </motion.div>
 

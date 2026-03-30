@@ -70,7 +70,7 @@ export default function Skills() {
           Technology Stack
         </motion.h2>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {skillGroups.map((group, gi) => (
             <motion.div
               key={group.category}

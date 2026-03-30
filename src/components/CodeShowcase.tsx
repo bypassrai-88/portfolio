@@ -79,10 +79,19 @@ export default function CodeShowcase() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-3xl sm:text-4xl font-bold text-white mb-8"
+          className="text-3xl sm:text-4xl font-bold text-white mb-3"
         >
           Code Showcase
         </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="text-white/45 text-[0.95rem] mb-8"
+        >
+          A few files I picked to show some of my work from the recent projects.
+        </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -159,9 +168,7 @@ export default function CodeShowcase() {
           </div>
         </motion.div>
 
-        <p className="mt-4 text-white/25 text-[11px] text-center">
-          A few files I picked to show some of my work from the recent projects.
-        </p>
+
       </div>
     </section>
   );

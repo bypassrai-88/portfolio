@@ -59,7 +59,7 @@ export default function Hero() {
           {...fadeUp(0.32)}
           className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto leading-relaxed mb-10"
         >
-          Full stack developer focused on web and mobile development.
+          Full-stack developer focused on web and mobile development.
         </motion.p>
 
         {/* CTA buttons */}

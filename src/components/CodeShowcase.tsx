@@ -453,6 +453,109 @@ export function EssayWriterClient() {
   };
 }`,
   },
+  {
+    name: "SummarizerClient.tsx",
+    lang: "TypeScript",
+    project: "Bypassr AI",
+    color: "indigo",
+    code: `"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useQuotaModal } from "@/components/QuotaModalContext";
+import { isQuotaReachedError } from "@/lib/quota-messages";
+
+const TEXT_LOADING = [
+  "Reading your text…",
+  "Pulling out the main ideas…",
+  "Condensing into a clear summary…",
+  "Almost there…",
+];
+
+const URL_LOADING = [
+  "Fetching the page…",
+  "Grabbing headline and images…",
+  "Extracting the article text…",
+  "Summarizing the key points…",
+];
+
+type Mode = "text" | "url";
+
+export function SummarizerClient() {
+  const { openQuotaModal } = useQuotaModal();
+  const [mode, setMode] = useState<Mode>("text");
+  const [textInput, setTextInput] = useState("");
+  const [urlInput, setUrlInput] = useState("");
+  const [summary, setSummary] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [msgIndex, setMsgIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+  const urlInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!loading) return;
+    const messages = mode === "url" ? URL_LOADING : TEXT_LOADING;
+    const id = setInterval(() => setMsgIndex((i) => (i + 1) % messages.length), 1800);
+    return () => clearInterval(id);
+  }, [loading, mode]);
+
+  useEffect(() => {
+    setSummary("");
+    setHeadline("");
+    setImages([]);
+    setSourceUrl("");
+    setError("");
+  }, [mode]);
+
+  const handleSummarizeUrl = async () => {
+    const u = urlInput.trim();
+    if (!u || loading) return;
+    setError("");
+    setSummary("");
+    setHeadline("");
+    setImages([]);
+    setSourceUrl("");
+    setLoading(true);
+    setMsgIndex(0);
+    try {
+      const res = await fetch("/api/summarize-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: u }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = data.error || \`Error (\${res.status}). Please try again.\`;
+        if (res.status === 403 && isQuotaReachedError(err)) {
+          openQuotaModal();
+        } else {
+          setError(err);
+        }
+        return;
+      }
+      if (data.result) setSummary(data.result);
+      if (data.headline) setHeadline(data.headline);
+      if (Array.isArray(data.images)) setImages(data.images);
+      if (data.sourceUrl) setSourceUrl(data.sourceUrl);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!summary) return;
+    navigator.clipboard.writeText(summary).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
+}`,
+  },
 ];
 
 function highlight(code: string, lang: string): string {
@@ -523,22 +626,49 @@ export default function CodeShowcase() {
           className="card overflow-hidden"
         >
           {/* Tab bar */}
-          <div className="flex overflow-x-auto border-b border-white/[0.07] bg-black/20">
-            {files.map((f, i) => (
-              <button
-                key={f.name}
-                onClick={() => setActive(i)}
-                className={`flex-shrink-0 px-4 py-3 text-[11px] font-semibold tracking-wide transition-all border-b-2 ${
-                  active === i
-                    ? f.color === "cyan"
-                      ? "border-cyan-400 text-cyan-300 bg-white/[0.04]"
-                      : "border-indigo-400 text-indigo-300 bg-white/[0.04]"
-                    : "border-transparent text-white/35 hover:text-white/60"
-                }`}
-              >
-                {f.name}
-              </button>
-            ))}
+          <div className="border-b border-white/[0.07] bg-black/20">
+            {/* Project group: In-Tuned */}
+            <div className="flex items-center gap-0 overflow-x-auto">
+              <span className="flex-shrink-0 px-4 py-2.5 text-[9px] font-black tracking-widest uppercase text-cyan-500/70 border-r border-white/[0.06]">
+                In-Tuned
+              </span>
+              {files.filter(f => f.project === "In-Tuned").map((f) => {
+                const i = files.indexOf(f);
+                return (
+                  <button
+                    key={f.name}
+                    onClick={() => setActive(i)}
+                    className={`flex-shrink-0 px-4 py-3 text-[11px] font-semibold tracking-wide transition-all border-b-2 ${
+                      active === i
+                        ? "border-cyan-400 text-cyan-300 bg-white/[0.04]"
+                        : "border-transparent text-white/35 hover:text-white/60"
+                    }`}
+                  >
+                    {f.name}
+                  </button>
+                );
+              })}
+              <div className="flex-shrink-0 w-px h-8 bg-white/[0.08] mx-1 self-center" />
+              <span className="flex-shrink-0 px-4 py-2.5 text-[9px] font-black tracking-widest uppercase text-indigo-400/70">
+                Bypassr AI
+              </span>
+              {files.filter(f => f.project === "Bypassr AI").map((f) => {
+                const i = files.indexOf(f);
+                return (
+                  <button
+                    key={f.name}
+                    onClick={() => setActive(i)}
+                    className={`flex-shrink-0 px-4 py-3 text-[11px] font-semibold tracking-wide transition-all border-b-2 ${
+                      active === i
+                        ? "border-indigo-400 text-indigo-300 bg-white/[0.04]"
+                        : "border-transparent text-white/35 hover:text-white/60"
+                    }`}
+                  >
+                    {f.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* File meta bar */}

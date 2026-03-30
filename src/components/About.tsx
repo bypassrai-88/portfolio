@@ -61,8 +61,8 @@ export default function About() {
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">
               Software engineer with a full-stack background and experience across{" "}
-              <span className="gradient-text">web, mobile,</span> and{" "}
-              <span className="gradient-text">AI development</span>.
+              <span className="text-indigo-400">web, mobile,</span> and{" "}
+              <span className="text-indigo-400">AI development</span>.
             </h2>
             <p className="text-white/60 leading-relaxed mb-5 text-[0.95rem]">
               I&apos;m a Software Engineer focused on web development and full-stack

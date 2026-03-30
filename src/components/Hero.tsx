@@ -43,15 +43,15 @@ export default function Hero() {
         >
           Connor
           <br />
-          <span className="gradient-text text-glow">Adams</span>
+          Adams
         </motion.h1>
 
         {/* Title */}
         <motion.p
           {...fadeUp(0.22)}
-          className="text-lg sm:text-xl text-white/50 font-medium tracking-widest uppercase mb-6 mt-2"
+          className="text-lg sm:text-xl font-medium tracking-widest uppercase mb-6 mt-2"
         >
-          Software Engineer
+          <span className="gradient-text text-glow">Software Engineer</span>
         </motion.p>
 
         {/* Tagline */}

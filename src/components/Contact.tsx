@@ -30,7 +30,7 @@ export default function Contact() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="contact" className="relative py-28 px-6">
+    <section id="contact" className="relative py-16 px-6">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.05]"

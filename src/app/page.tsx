@@ -4,7 +4,6 @@ import About from "@/components/About";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
 import InTunedGallery from "@/components/InTunedGallery";
-import Experience from "@/components/Experience";
 import Education from "@/components/Education";
 import CodeShowcase from "@/components/CodeShowcase";
 import Contact from "@/components/Contact";
@@ -19,7 +18,6 @@ export default function Home() {
       <Skills />
       <Projects />
       <InTunedGallery />
-      <Experience />
       <Education />
       <CodeShowcase />
       <Contact />

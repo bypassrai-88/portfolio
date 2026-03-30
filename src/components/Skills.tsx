@@ -40,7 +40,7 @@ export default function Skills() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="skills" className="relative py-28 px-6">
+    <section id="skills" className="relative py-16 px-6">
       {/* Background accent */}
       <div
         aria-hidden

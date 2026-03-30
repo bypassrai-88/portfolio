@@ -41,7 +41,7 @@ export default function CodeShowcase() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="code" className="relative py-28 px-6">
+    <section id="code" className="relative py-16 px-6">
       <div className="max-w-5xl mx-auto" ref={ref}>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -148,14 +148,6 @@ export default function CodeShowcase() {
           ))}
         </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5, delay: 0.7 }}
-          className="text-center text-white/25 text-xs mt-8 font-medium tracking-wide"
-        >
-          Full code samples will be added in the next iteration of this portfolio.
-        </motion.p>
       </div>
     </section>
   );

@@ -41,7 +41,7 @@ export default function About() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="about" className="relative py-28 px-6">
+    <section id="about" className="relative py-16 px-6">
       <div className="max-w-5xl mx-auto" ref={ref}>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -60,9 +60,9 @@ export default function About() {
             transition={{ duration: 0.7, delay: 0.1 }}
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">
-              Building web products that{" "}
-              <span className="gradient-text">look great</span> and{" "}
-              <span className="gradient-text">scale further</span>.
+              Software engineer with a{" "}
+              <span className="gradient-text">full-stack</span> background and{" "}
+              <span className="gradient-text">product mindset</span>.
             </h2>
             <p className="text-white/60 leading-relaxed mb-5 text-[0.95rem]">
               I&apos;m a Software Engineer focused on web development and full-stack

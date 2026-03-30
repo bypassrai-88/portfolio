@@ -80,7 +80,7 @@ export default function Projects() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="projects" className="relative py-28 px-6">
+    <section id="projects" className="relative py-16 px-6">
       <div className="max-w-5xl mx-auto" ref={ref}>
         <motion.p
           initial={{ opacity: 0, y: 10 }}

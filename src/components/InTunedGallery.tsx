@@ -28,7 +28,7 @@ export default function InTunedGallery() {
 
   return (
     <>
-      <section id="intuned-gallery" className="relative py-28 px-6">
+      <section id="intuned-gallery" className="relative py-16 px-6">
         <div className="max-w-5xl mx-auto" ref={ref}>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -47,27 +47,6 @@ export default function InTunedGallery() {
           >
             App Screenshots
           </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.18 }}
-            className="text-white/50 text-sm mb-12 max-w-xl"
-          >
-            Drop your screenshots into{" "}
-            <code className="text-indigo-400 bg-indigo-950/50 px-1.5 py-0.5 rounded text-xs">
-              public/screenshots/
-            </code>{" "}
-            named{" "}
-            <code className="text-indigo-400 bg-indigo-950/50 px-1.5 py-0.5 rounded text-xs">
-              intuned-1.png
-            </code>{" "}
-            through{" "}
-            <code className="text-indigo-400 bg-indigo-950/50 px-1.5 py-0.5 rounded text-xs">
-              intuned-6.png
-            </code>{" "}
-            and they will appear here automatically.
-          </motion.p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {screenShotPaths.map((src, i) => (

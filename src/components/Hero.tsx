@@ -62,7 +62,7 @@ export default function Hero() {
           I build{" "}
           <span className="text-cyan-400 font-semibold">web apps</span> and{" "}
           <span className="text-indigo-400 font-semibold">full-stack products</span>{" "}
-          that work well and are easy to maintain. Also into AI, iOS, and keeping things secure.
+          with a background in AI, iOS, and cybersecurity.
         </motion.p>
 
         {/* CTA buttons */}

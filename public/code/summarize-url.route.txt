@@ -1,0 +1,295 @@
+import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@/lib/supabase/server";
+import {
+  checkAnonymousQuota,
+  countWords,
+  incrementAnonymousUsage,
+  setAnonCookie,
+} from "@/lib/quota-anonymous";
+import { checkUserQuota, incrementUserUsage } from "@/lib/quota-user";
+import {
+  buildSummarizePayloadFromPage,
+  isUrlAllowedForFetch,
+} from "@/lib/extract-page-from-html";
+import { SUMMARIZE_SYSTEM } from "@/lib/prompts";
+
+const MAX_HTML_BYTES = 600_000;
+const MAX_TEXT_CHARS = 10_000;
+const FETCH_TIMEOUT_MS = 20_000;
+const MAX_REDIRECTS = 6;
+
+/** Browser-like headers — many publishers block non-browser or custom bot user agents. */
+const FETCH_HEADERS: Record<string, string> = {
+  Accept:
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.9",
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "none",
+  "Upgrade-Insecure-Requests": "1",
+  "Cache-Control": "no-cache",
+};
+
+function normalizeUrlInput(raw: string): string {
+  const t = raw.trim();
+  if (!t) return t;
+  if (/^https?:\/\//i.test(t)) return t;
+  return `https://${t}`;
+}
+
+function fetchFailureMessage(e: unknown): string {
+  if (e instanceof AggregateError && Array.isArray(e.errors) && e.errors[0]) {
+    return fetchFailureMessage(e.errors[0]);
+  }
+  if (e instanceof Error && e.name === "AbortError") {
+    return "Request timed out. The site may be slow or blocking requests.";
+  }
+  let cur: unknown = e;
+  for (let depth = 0; depth < 6 && cur != null; depth++) {
+    if (cur instanceof Error) {
+      const msg = (cur.message || "").toLowerCase();
+      const errRec = cur as Error & { code?: string };
+      const code = typeof errRec.code === "string" ? errRec.code : "";
+      if (
+        code === "ENOTFOUND" ||
+        msg.includes("enotfound") ||
+        msg.includes("getaddrinfo")
+      ) {
+        return "We couldn’t find that website. Check the URL or try adding https://.";
+      }
+      if (code === "ECONNREFUSED" || msg.includes("econnrefused")) {
+        return "That server refused the connection.";
+      }
+      if (
+        code === "CERT_HAS_EXPIRED" ||
+        code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE" ||
+        msg.includes("certificate") ||
+        msg.includes("ssl") ||
+        msg.includes("tls")
+      ) {
+        return "Could not verify that site’s security certificate. Try pasting the article text instead.";
+      }
+      if (
+        code === "ETIMEDOUT" ||
+        code === "UND_ERR_CONNECT_TIMEOUT" ||
+        msg.includes("timed out") ||
+        msg.includes("timeout")
+      ) {
+        return "Connection timed out.";
+      }
+      cur = (cur as { cause?: unknown }).cause;
+    } else if (typeof cur === "object" && cur !== null && "code" in cur) {
+      const c = (cur as { code?: string }).code;
+      if (c === "ENOTFOUND") {
+        return "We couldn’t find that website. Check the URL or try adding https://.";
+      }
+      if (c === "ECONNREFUSED") {
+        return "That server refused the connection.";
+      }
+      break;
+    } else {
+      break;
+    }
+  }
+  return "Could not load that page. The site may block automated access — paste the article text instead.";
+}
+
+async function fetchHtmlWithRedirects(startUrl: URL): Promise<{ ok: true; html: string; finalUrl: string } | { ok: false; error: string }> {
+  let current = startUrl.href;
+  /** Set after each hop so redirects look like in-site navigation. */
+  let refererForNext = "";
+  for (let i = 0; i < MAX_REDIRECTS; i++) {
+    const allowed = isUrlAllowedForFetch(current);
+    if (!allowed.ok) {
+      return { ok: false, error: allowed.reason };
+    }
+    const u = allowed.url;
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), FETCH_TIMEOUT_MS);
+    let res: Response;
+    try {
+      const hdrs: Record<string, string> = { ...FETCH_HEADERS };
+      if (refererForNext) {
+        hdrs.Referer = refererForNext;
+      } else {
+        hdrs.Referer = `${u.origin}/`;
+      }
+      res = await fetch(u.href, {
+        method: "GET",
+        redirect: "manual",
+        signal: ac.signal,
+        headers: hdrs,
+      });
+    } catch (e) {
+      clearTimeout(t);
+      return { ok: false, error: fetchFailureMessage(e) };
+    }
+    clearTimeout(t);
+
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location");
+      if (!loc) {
+        return { ok: false, error: "Redirect without location." };
+      }
+      try {
+        refererForNext = u.href;
+        current = new URL(loc, u.href).href;
+      } catch {
+        return { ok: false, error: "Invalid redirect." };
+      }
+      continue;
+    }
+
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 401) {
+        return {
+          ok: false,
+          error:
+            "That site blocked our request (login or bot protection). Paste the article text instead.",
+        };
+      }
+      return { ok: false, error: `Page returned status ${res.status}.` };
+    }
+
+    const type = res.headers.get("content-type") ?? "";
+    if (!type.toLowerCase().includes("text/html") && !type.toLowerCase().includes("application/xhtml")) {
+      return { ok: false, error: "That link does not point to an HTML page we can read." };
+    }
+
+    let buf: ArrayBuffer;
+    try {
+      buf = await res.arrayBuffer();
+    } catch (e) {
+      return { ok: false, error: fetchFailureMessage(e) };
+    }
+    if (buf.byteLength > MAX_HTML_BYTES) {
+      return { ok: false, error: "Page is too large to process." };
+    }
+    const html = new TextDecoder("utf-8", { fatal: false }).decode(buf);
+    return { ok: true, html, finalUrl: u.href };
+  }
+  return { ok: false, error: "Too many redirects." };
+}
+
+export async function POST(request: NextRequest) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: "API key not configured." }, { status: 500 });
+  }
+
+  let user: { id: string } | null = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (_) {
+    // continue as anonymous
+  }
+
+  let body: { url?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
+
+  const rawUrl = typeof body.url === "string" ? body.url.trim() : "";
+  if (!rawUrl) {
+    return NextResponse.json({ error: "Missing URL." }, { status: 400 });
+  }
+
+  const normalized = normalizeUrlInput(rawUrl);
+  const allowed = isUrlAllowedForFetch(normalized);
+  if (!allowed.ok) {
+    return NextResponse.json({ error: allowed.reason }, { status: 400 });
+  }
+
+  const fetched = await fetchHtmlWithRedirects(allowed.url);
+  if (!fetched.ok) {
+    return NextResponse.json({ error: fetched.error }, { status: 422 });
+  }
+
+  const { headline, description, images, text } = buildSummarizePayloadFromPage(
+    fetched.html,
+    fetched.finalUrl,
+    MAX_TEXT_CHARS
+  );
+
+  if (!text.trim()) {
+    return NextResponse.json(
+      { error: "Could not extract readable text from that page." },
+      { status: 422 }
+    );
+  }
+
+  const wordCount = countWords(text);
+  const maxWordsPerRequest = 2500;
+  if (wordCount > maxWordsPerRequest) {
+    return NextResponse.json(
+      { error: `Maximum ${maxWordsPerRequest.toLocaleString()} words per request.` },
+      { status: 400 }
+    );
+  }
+
+  if (user) {
+    const quota = await checkUserQuota(user.id, wordCount);
+    if (!quota.allowed) {
+      return NextResponse.json({ error: quota.error }, { status: quota.status });
+    }
+  } else {
+    const quota = await checkAnonymousQuota(request, wordCount);
+    if (!quota.allowed) {
+      return NextResponse.json({ error: quota.error }, { status: quota.status });
+    }
+  }
+
+  try {
+    const anthropic = new Anthropic({ apiKey });
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-5-20250929",
+      max_tokens: 1024,
+      system: SUMMARIZE_SYSTEM,
+      messages: [{ role: "user", content: text }],
+    });
+
+    const block = message.content.find((b) => b.type === "text");
+    const result = block && block.type === "text" ? block.text.trim() : "";
+
+    if (!result) {
+      return NextResponse.json({ error: "No response from AI." }, { status: 502 });
+    }
+
+    if (user) {
+      const quota = await checkUserQuota(user.id, wordCount);
+      if (quota.allowed) {
+        await incrementUserUsage(user.id, wordCount, quota.periodStart);
+      }
+    } else {
+      const quota = await checkAnonymousQuota(request, wordCount);
+      if (quota.allowed) {
+        await incrementAnonymousUsage(quota.anonymousId, wordCount);
+      }
+    }
+
+    const response = NextResponse.json({
+      result,
+      headline: headline || description.slice(0, 200) || new URL(fetched.finalUrl).hostname,
+      description: description || "",
+      images,
+      sourceUrl: fetched.finalUrl,
+    });
+
+    if (!user) {
+      const quota = await checkAnonymousQuota(request, wordCount);
+      if (quota.allowed && quota.setCookie) {
+        setAnonCookie(response, quota.anonymousId);
+      }
+    }
+    return response;
+  } catch (err) {
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 502 });
+  }
+}

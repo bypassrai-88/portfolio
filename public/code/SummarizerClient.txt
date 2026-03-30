@@ -1,0 +1,329 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useQuotaModal } from "@/components/QuotaModalContext";
+import { isQuotaReachedError } from "@/lib/quota-messages";
+
+const TEXT_LOADING = [
+  "Reading your text…",
+  "Pulling out the main ideas…",
+  "Condensing into a clear summary…",
+  "Almost there…",
+];
+
+const URL_LOADING = [
+  "Fetching the page…",
+  "Grabbing headline and images…",
+  "Extracting the article text…",
+  "Summarizing the key points…",
+];
+
+type Mode = "text" | "url";
+
+export function SummarizerClient() {
+  const { openQuotaModal } = useQuotaModal();
+  const [mode, setMode] = useState<Mode>("text");
+  const [textInput, setTextInput] = useState("");
+  const [urlInput, setUrlInput] = useState("");
+  const [summary, setSummary] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [msgIndex, setMsgIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+  const urlInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!loading) return;
+    const messages = mode === "url" ? URL_LOADING : TEXT_LOADING;
+    const id = setInterval(() => setMsgIndex((i) => (i + 1) % messages.length), 1800);
+    return () => clearInterval(id);
+  }, [loading, mode]);
+
+  useEffect(() => {
+    setSummary("");
+    setHeadline("");
+    setImages([]);
+    setSourceUrl("");
+    setError("");
+  }, [mode]);
+
+  const words = textInput.trim()
+    ? textInput.trim().split(/\s+/).filter(Boolean).length
+    : 0;
+  const wordLimit = 500;
+  const atLimit = words >= wordLimit;
+
+  const handleSummarizeText = async () => {
+    const t = textInput.trim();
+    if (!t || loading) return;
+    setError("");
+    setSummary("");
+    setHeadline("");
+    setImages([]);
+    setSourceUrl("");
+    setLoading(true);
+    setMsgIndex(0);
+    try {
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: t }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = data.error || `Error (${res.status}). Please try again.`;
+        if (res.status === 403 && isQuotaReachedError(err)) {
+          openQuotaModal();
+        } else {
+          setError(err);
+        }
+        return;
+      }
+      if (data.result) setSummary(data.result);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSummarizeUrl = async () => {
+    const u = urlInput.trim();
+    if (!u || loading) return;
+    setError("");
+    setSummary("");
+    setHeadline("");
+    setImages([]);
+    setSourceUrl("");
+    setLoading(true);
+    setMsgIndex(0);
+    try {
+      const res = await fetch("/api/summarize-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: u }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = data.error || `Error (${res.status}). Please try again.`;
+        if (res.status === 403 && isQuotaReachedError(err)) {
+          openQuotaModal();
+        } else {
+          setError(err);
+        }
+        return;
+      }
+      if (data.result) setSummary(data.result);
+      if (data.headline) setHeadline(data.headline);
+      if (Array.isArray(data.images)) setImages(data.images);
+      if (data.sourceUrl) setSourceUrl(data.sourceUrl);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!summary) return;
+    navigator.clipboard.writeText(summary).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
+
+  const loadingMessages = mode === "url" ? URL_LOADING : TEXT_LOADING;
+
+  return (
+    <div className="relative">
+      {loading && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black/45 backdrop-blur-md"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div className="mx-4 flex max-w-md flex-col items-center gap-5 rounded-3xl border border-white/20 bg-white/95 px-10 py-10 shadow-bubble-lg">
+            <div className="h-14 w-14 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+            <p className="text-center text-lg font-medium text-neutral-800">
+              {loadingMessages[msgIndex]}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-[2rem] border border-neutral-200/80 bg-gradient-to-br from-white via-primary-50/30 to-violet-50/40 p-6 shadow-bubble-lg sm:p-8">
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white/70 p-1.5 shadow-inner ring-1 ring-neutral-200/60">
+          <button
+            type="button"
+            onClick={() => {
+              setMode("text");
+              setError("");
+            }}
+            className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition sm:flex-none sm:px-6 ${
+              mode === "text"
+                ? "bg-primary-600 text-white shadow-md shadow-primary-500/25"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            Paste text
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("url");
+              setError("");
+              setTimeout(() => urlInputRef.current?.focus(), 0);
+            }}
+            className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition sm:flex-none sm:px-6 ${
+              mode === "url"
+                ? "bg-violet-600 text-white shadow-md shadow-violet-500/25"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            Paste link
+          </button>
+        </div>
+
+        <p className="mt-4 text-sm text-neutral-600">
+          {mode === "text"
+            ? "Drop in articles, notes, or long documents — we keep the ideas, trim the noise."
+            : "We fetch the page on our servers, read the headline and preview images, then summarize the main text. Paywalled or bot-blocked sites may not work."}
+        </p>
+
+        {mode === "text" ? (
+          <div className="mt-6 space-y-4">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-neutral-800">Your text</span>
+              <textarea
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                placeholder="Paste long articles, essays, or documents here…"
+                rows={10}
+                className="w-full resize-y rounded-2xl border-0 bg-white/90 px-4 py-4 text-neutral-900 shadow-sm ring-1 ring-neutral-200/80 placeholder:text-neutral-400 focus:ring-2 focus:ring-primary-500/40 focus:outline-none"
+              />
+            </label>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <p className="text-sm text-neutral-500">
+                {words} / {wordLimit} words · up to 2,500 with a subscription
+              </p>
+              <button
+                type="button"
+                onClick={handleSummarizeText}
+                disabled={!textInput.trim() || loading || atLimit}
+                className="rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary-500/30 transition hover:from-primary-700 hover:to-primary-600 disabled:opacity-50"
+              >
+                Summarize
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 space-y-4">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-neutral-800">Article or page URL</span>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                <input
+                  ref={urlInputRef}
+                  type="url"
+                  inputMode="url"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://example.com/article"
+                  className="min-h-[52px] flex-1 rounded-2xl border-0 bg-white/90 px-4 py-3 text-neutral-900 shadow-sm ring-1 ring-neutral-200/80 placeholder:text-neutral-400 focus:ring-2 focus:ring-violet-500/40 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleSummarizeUrl}
+                  disabled={!urlInput.trim() || loading}
+                  className="rounded-2xl bg-gradient-to-r from-violet-600 to-violet-500 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition hover:from-violet-700 hover:to-violet-600 disabled:opacity-50"
+                >
+                  Fetch &amp; summarize
+                </button>
+              </div>
+            </label>
+          </div>
+        )}
+
+        {error && (
+          <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200/60">
+            {error}
+          </p>
+        )}
+      </div>
+
+      {(summary || headline || images.length > 0 || sourceUrl) && (
+        <div className="mt-8 space-y-6">
+          {(headline || sourceUrl || images.length > 0) && (
+            <div className="overflow-hidden rounded-[1.75rem] border border-neutral-200/80 bg-white shadow-bubble">
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 gap-0.5 bg-neutral-200 sm:grid-cols-3">
+                  {images.slice(0, 3).map((src, i) => (
+                    <div
+                      key={`${src}-${i}`}
+                      className="relative aspect-[16/10] bg-neutral-100"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="p-6 sm:p-8">
+                {headline && (
+                  <h2 className="text-xl font-bold leading-snug text-neutral-900 sm:text-2xl">
+                    {headline}
+                  </h2>
+                )}
+                {sourceUrl && (
+                  <a
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block max-w-full truncate text-sm font-medium text-primary-600 hover:underline"
+                  >
+                    {sourceUrl}
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="rounded-[1.75rem] border border-neutral-200/80 bg-gradient-to-br from-white to-neutral-50/80 p-6 shadow-bubble sm:p-8">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-lg font-bold text-neutral-900">Summary</h3>
+              {summary && (
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+                    copied
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-primary-100 text-primary-800 hover:bg-primary-200"
+                  }`}
+                >
+                  {copied ? "Copied" : "Copy summary"}
+                </button>
+              )}
+            </div>
+            <div className="min-h-[120px] rounded-2xl bg-white/90 p-5 text-[15px] leading-relaxed text-neutral-800 shadow-inner ring-1 ring-neutral-200/50 whitespace-pre-wrap">
+              {summary || (
+                <span className="text-neutral-400">Your summary will show up here.</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -19,10 +19,8 @@ const MAX_TEXT_CHARS = 10_000;
 const FETCH_TIMEOUT_MS = 20_000;
 const MAX_REDIRECTS = 6;
 
-/** Browser-like headers — many publishers block non-browser or custom bot user agents. */
 const FETCH_HEADERS: Record<string, string> = {
   Accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
   "Accept-Language": "en-US,en;q=0.9",
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
@@ -45,7 +43,7 @@ function fetchFailureMessage(e: unknown): string {
     return fetchFailureMessage(e.errors[0]);
   }
   if (e instanceof Error && e.name === "AbortError") {
-    return "Request timed out. The site may be slow or blocking requests.";
+    return "Took too long to load that page. The site might be slow or blocking requests.";
   }
   let cur: unknown = e;
   for (let depth = 0; depth < 6 && cur != null; depth++) {
@@ -61,7 +59,7 @@ function fetchFailureMessage(e: unknown): string {
         return "We couldn’t find that website. Check the URL or try adding https://.";
       }
       if (code === "ECONNREFUSED" || msg.includes("econnrefused")) {
-        return "That server refused the connection.";
+        return "That server is not accepting connections right now.";
       }
       if (
         code === "CERT_HAS_EXPIRED" ||
@@ -78,7 +76,7 @@ function fetchFailureMessage(e: unknown): string {
         msg.includes("timed out") ||
         msg.includes("timeout")
       ) {
-        return "Connection timed out.";
+        return "The connection timed out before the page loaded.";
       }
       cur = (cur as { cause?: unknown }).cause;
     } else if (typeof cur === "object" && cur !== null && "code" in cur) {
@@ -87,19 +85,18 @@ function fetchFailureMessage(e: unknown): string {
         return "We couldn’t find that website. Check the URL or try adding https://.";
       }
       if (c === "ECONNREFUSED") {
-        return "That server refused the connection.";
+        return "That server is not accepting connections right now.";
       }
       break;
     } else {
       break;
     }
   }
-  return "Could not load that page. The site may block automated access — paste the article text instead.";
+  return "Could not load that page. The site may be blocking automated requests. Try pasting the text directly.";
 }
 
 async function fetchHtmlWithRedirects(startUrl: URL): Promise<{ ok: true; html: string; finalUrl: string } | { ok: false; error: string }> {
   let current = startUrl.href;
-  /** Set after each hop so redirects look like in-site navigation. */
   let refererForNext = "";
   for (let i = 0; i < MAX_REDIRECTS; i++) {
     const allowed = isUrlAllowedForFetch(current);
@@ -132,13 +129,13 @@ async function fetchHtmlWithRedirects(startUrl: URL): Promise<{ ok: true; html: 
     if (res.status >= 300 && res.status < 400) {
       const loc = res.headers.get("location");
       if (!loc) {
-        return { ok: false, error: "Redirect without location." };
+        return { ok: false, error: "Got a redirect with no destination. The link might be broken." };
       }
       try {
         refererForNext = u.href;
         current = new URL(loc, u.href).href;
       } catch {
-        return { ok: false, error: "Invalid redirect." };
+        return { ok: false, error: "That redirect led somewhere we could not follow." };
       }
       continue;
     }
@@ -148,15 +145,15 @@ async function fetchHtmlWithRedirects(startUrl: URL): Promise<{ ok: true; html: 
         return {
           ok: false,
           error:
-            "That site blocked our request (login or bot protection). Paste the article text instead.",
+            "That site requires a login or is blocking automated access. Paste the article text directly instead.",
         };
       }
-      return { ok: false, error: `Page returned status ${res.status}.` };
+      return { ok: false, error: `That page came back with a ${res.status} error.` };
     }
 
     const type = res.headers.get("content-type") ?? "";
     if (!type.toLowerCase().includes("text/html") && !type.toLowerCase().includes("application/xhtml")) {
-      return { ok: false, error: "That link does not point to an HTML page we can read." };
+      return { ok: false, error: "That link does not point to a readable web page." };
     }
 
     let buf: ArrayBuffer;
@@ -166,18 +163,18 @@ async function fetchHtmlWithRedirects(startUrl: URL): Promise<{ ok: true; html: 
       return { ok: false, error: fetchFailureMessage(e) };
     }
     if (buf.byteLength > MAX_HTML_BYTES) {
-      return { ok: false, error: "Page is too large to process." };
+      return { ok: false, error: "That page is too large for us to process." };
     }
     const html = new TextDecoder("utf-8", { fatal: false }).decode(buf);
     return { ok: true, html, finalUrl: u.href };
   }
-  return { ok: false, error: "Too many redirects." };
+  return { ok: false, error: "That URL redirected too many times and we gave up." };
 }
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "API key not configured." }, { status: 500 });
+    return NextResponse.json({ error: "The API key is not set up on this server." }, { status: 500 });
   }
 
   let user: { id: string } | null = null;
@@ -186,19 +183,18 @@ export async function POST(request: NextRequest) {
     const { data } = await supabase.auth.getUser();
     user = data.user;
   } catch (_) {
-    // continue as anonymous
   }
 
   let body: { url?: string };
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    return NextResponse.json({ error: "Could not read the request body." }, { status: 400 });
   }
 
   const rawUrl = typeof body.url === "string" ? body.url.trim() : "";
   if (!rawUrl) {
-    return NextResponse.json({ error: "Missing URL." }, { status: 400 });
+    return NextResponse.json({ error: "Please include a URL." }, { status: 400 });
   }
 
   const normalized = normalizeUrlInput(rawUrl);
@@ -220,7 +216,7 @@ export async function POST(request: NextRequest) {
 
   if (!text.trim()) {
     return NextResponse.json(
-      { error: "Could not extract readable text from that page." },
+      { error: "Could not pull any readable text from that page. It might be mostly images or JavaScript-rendered content." },
       { status: 422 }
     );
   }
@@ -259,7 +255,7 @@ export async function POST(request: NextRequest) {
     const result = block && block.type === "text" ? block.text.trim() : "";
 
     if (!result) {
-      return NextResponse.json({ error: "No response from AI." }, { status: 502 });
+      return NextResponse.json({ error: "Got an empty response from the AI. Try again." }, { status: 502 });
     }
 
     if (user) {
@@ -290,6 +286,6 @@ export async function POST(request: NextRequest) {
     }
     return response;
   } catch (err) {
-    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 502 });
+    return NextResponse.json({ error: "Something went wrong on our end. Give it another try." }, { status: 502 });
   }
 }

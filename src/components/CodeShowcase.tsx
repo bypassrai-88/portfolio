@@ -6,29 +6,33 @@ import { useRef, useState, useEffect } from "react";
 import { Copy, Check, Loader2 } from "lucide-react";
 
 const files = [
-  { name: "UserService.swift",       lang: "Swift",      project: "In-Tuned",    file: "UserService.swift" },
-  { name: "ConversationService.swift", lang: "Swift",    project: "In-Tuned",    file: "ConversationService.swift" },
-  { name: "UserViewModel.swift",     lang: "Swift",      project: "In-Tuned",    file: "UserViewModel.swift" },
-  { name: "PlayerViewModel.swift",   lang: "Swift",      project: "In-Tuned",    file: "PlayerViewModel.swift" },
   { name: "summarize-url/route.ts",  lang: "TypeScript", project: "Bypassr AI",  file: "summarize-url.route.txt" },
   { name: "EssayWriterClient.tsx",   lang: "TypeScript", project: "Bypassr AI",  file: "EssayWriterClient.txt" },
   { name: "SummarizerClient.tsx",    lang: "TypeScript", project: "Bypassr AI",  file: "SummarizerClient.txt" },
+  { name: "UserService.swift",       lang: "Swift",      project: "In-Tuned",    file: "UserService.swift" },
+  { name: "ConversationService.swift", lang: "Swift",    project: "In-Tuned",    file: "ConversationService.swift" },
+  { name: "PlayerViewModel.swift",   lang: "Swift",      project: "In-Tuned",    file: "PlayerViewModel.swift" },
 ];
 
 function highlight(code: string, lang: string): string {
-  const swiftKw = /\b(import|struct|class|func|let|var|guard|return|if|else|do|catch|try|throws|async|await|private|public|internal|static|override|init|self|nil|true|false|for|in|switch|case|default|break|continue|where|extension|protocol|enum|@Published|@MainActor|@escaping|@objc|Task|defer)\b/g;
-  const tsKw    = /\b(import|export|from|const|let|var|function|async|await|return|if|else|try|catch|throw|new|typeof|type|interface|class|extends|implements|default|null|undefined|true|false|for|of|in|switch|case|break|continue|void)\b/g;
+  const swiftKw = /\b(import|struct|class|func|let|var|guard|return|if|else|do|catch|try|throws|async|await|private|public|internal|static|override|init|self|nil|true|false|for|in|switch|case|default|break|continue|where|extension|protocol|enum|defer|Task|DispatchGroup|DispatchQueue|Date|UUID|NSNull|NSError|FieldValue|Firestore|Auth|Functions|Query|Timestamp|DocumentSnapshot|ListenerRegistration)\b/g;
+  const tsKwPat = /\b(import|export|from|const|let|var|function|async|await|return|if|else|try|catch|throw|new|typeof|type|interface|class|extends|implements|default|null|undefined|true|false|for|of|in|switch|case|break|continue|void|string|number|boolean|Promise|Response|NextRequest|NextResponse|headers|fetch)\b/g;
+  const swiftAttr = /(@Published|@MainActor|@escaping|@objc|@State|@Binding|@Environment|@ObservableObject|@StateObject|@EnvironmentObject)\b/g;
+  const tsDecorator = /\b(useState|useEffect|useRef|useRouter|useCallback|useMemo)\b/g;
 
   let out = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // strings first so keywords inside strings aren't coloured
+  // Numbers
+  out = out.replace(/\b(\d+(\.\d+)?)\b/g, '<span style="color:#fb923c">$1</span>');
+  // Strings (color after numbers so numbers inside strings stay green)
   out = out.replace(/(["'`])((?:\\.|(?!\1)[^\\])*)\1/g, '<span style="color:#86efac">$1$2$1</span>');
-  out = out.replace(/(\/\/[^\n]*)/g, '<span style="color:#64748b;font-style:italic">$1</span>');
-  out = out.replace(/\b(\d+(_\d+)?)\b/g, '<span style="color:#fb923c">$1</span>');
-  out = out.replace(lang === "Swift" ? swiftKw : tsKw, '<span style="color:#c084fc">$1</span>');
+  // Decorators/attributes
+  out = out.replace(lang === "Swift" ? swiftAttr : tsDecorator, '<span style="color:#f472b6">$1</span>');
+  // Keywords
+  out = out.replace(lang === "Swift" ? swiftKw : tsKwPat, '<span style="color:#c084fc">$1</span>');
 
   return out;
 }

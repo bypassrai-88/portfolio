@@ -264,7 +264,6 @@ export function SummarizerClient() {
                       key={`${src}-${i}`}
                       className="relative aspect-[16/10] bg-neutral-100"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={src}
                         alt=""

@@ -158,6 +158,10 @@ export default function CodeShowcase() {
             )}
           </div>
         </motion.div>
+
+        <p className="mt-4 text-white/25 text-[11px] text-center">
+          A few files I picked to show some of my work from the recent projects.
+        </p>
       </div>
     </section>
   );
